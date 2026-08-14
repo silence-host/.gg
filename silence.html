@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silence</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EDEAE3;
+    --paper-deep: #E6E2D9;
+    --ink: #33312C;
+    --ink-soft: #86837B;
+    --ink-faint: #B3AFA5;
+    --line: #D9D5CB;
+    --bronze: #9C7B52;
+    --bronze-dim: #C9B79C;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    height: 100%;
+    margin: 0;
+  }
+
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* faint paper texture, quiet room wall */
+  body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 50% 40%, transparent 0%, rgba(0,0,0,0.02) 100%);
+  }
+
+  .stage{
+    width: min(90vw, 640px);
+    text-align: center;
+    position: relative;
+  }
+
+  .view{
+    display: none;
+  }
+  .view.active{
+    display: block;
+    animation: settle 900ms ease both;
+  }
+
+  @keyframes settle{
+    from{ opacity: 0; transform: translateY(6px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- idle ---------- */
+
+  #idle-view h1{
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2.6rem, 8vw, 4.2rem);
+    margin: 0 0 0.6em;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  #idle-view p{
+    font-size: clamp(1rem, 2.2vw, 1.15rem);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 34ch;
+    margin: 0 auto 2.4em;
+  }
+
+  .begin-btn{
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+    background: none;
+    border: none;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 0.6em 0;
+    border-bottom: 1px solid var(--ink);
+    transition: opacity 200ms ease, border-color 200ms ease;
+  }
+  .begin-btn:hover{ opacity: 0.65; }
+  .begin-btn:focus-visible{
+    outline: 2px solid var(--bronze);
+    outline-offset: 6px;
+  }
+
+  /* ---------- counting ---------- */
+
+  #counting-view{
+    display: none;
+  }
+  #counting-view.active{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .clock{
+    font-family: var(--mono);
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(3.2rem, 13vw, 6.5rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .clock-label{
+    margin-top: 1.3em;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- broken ---------- */
+
+  #broken-view.active{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bell-wrap{
+    width: 76px;
+    height: 90px;
+    margin: 0 auto 1.4em;
+  }
+
+  #bell-swing{
+    transform-origin: 50% 14%;
+  }
+
+  #bell-swing.ring{
+    animation: swing 2.2s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  @keyframes swing{
+    0%   { transform: rotate(0deg); }
+    8%   { transform: rotate(-14deg); }
+    18%  { transform: rotate(12deg); }
+    30%  { transform: rotate(-9deg); }
+    42%  { transform: rotate(7deg); }
+    56%  { transform: rotate(-4deg); }
+    70%  { transform: rotate(3deg); }
+    85%  { transform: rotate(-1.2deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .broken-result{
+    font-family: var(--serif);
+    font-size: clamp(1.3rem, 3.4vw, 1.7rem);
+    color: var(--ink);
+    margin: 0 0 0.3em;
+  }
+  .broken-result .n{
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--bronze);
+  }
+
+  .broken-sub{
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    margin: 0 0 2em;
+  }
+
+  .again-btn{
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 0.5em 0;
+    border-bottom: 1px solid var(--line);
+    transition: color 200ms ease, border-color 200ms ease;
+  }
+  .again-btn:hover{ color: var(--ink); border-color: var(--ink-faint); }
+  .again-btn:focus-visible{
+    outline: 2px solid var(--bronze);
+    outline-offset: 6px;
+  }
+
+  /* ---------- footer ethos ---------- */
+
+  .ethos{
+    position: fixed;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+    color: var(--ink-faint);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .view.active{ animation: none; }
+    #bell-swing.ring{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+
+    <div id="idle-view" class="view active">
+      <h1>Silence</h1>
+      <p>This counts how long you stay here, and nowhere else. Leave the tab or the app, and the bell finds you.</p>
+      <button class="begin-btn" id="begin-btn" type="button">begin</button>
+    </div>
+
+    <div id="counting-view" class="view">
+      <div class="clock" id="clock">0:00</div>
+      <div class="clock-label">since you arrived</div>
+    </div>
+
+    <div id="broken-view" class="view">
+      <div class="bell-wrap">
+        <svg id="bell-svg" viewBox="0 0 120 140" width="76" height="90" xmlns="http://www.w3.org/2000/svg">
+          <g id="bell-swing">
+            <path d="M60,14 C41,14 33,34 33,54 C33,70 27,79 19,92 L101,92 C93,79 87,70 87,54 C87,34 79,14 60,14 Z" fill="#9C7B52"/>
+            <circle cx="60" cy="13" r="5.5" fill="#9C7B52"/>
+            <rect x="14" y="92" width="92" height="8" rx="4" fill="#9C7B52"/>
+            <circle cx="60" cy="110" r="5.5" fill="#C9B79C"/>
+            <line x1="60" y1="98" x2="60" y2="105" stroke="#C9B79C" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <p class="broken-result">the bell rang at <span class="n" id="broken-time">0:00</span></p>
+      <p class="broken-sub">you looked away.</p>
+      <button class="again-btn" id="again-btn" type="button">begin again</button>
+    </div>
+
+  </div>
+
+  <div class="ethos">no score. no history. just now.</div>
+
+<script>
+(function(){
+  var idleView = document.getElementById('idle-view');
+  var countingView = document.getElementById('counting-view');
+  var brokenView = document.getElementById('broken-view');
+  var clockEl = document.getElementById('clock');
+  var brokenTimeEl = document.getElementById('broken-time');
+  var beginBtn = document.getElementById('begin-btn');
+  var againBtn = document.getElementById('again-btn');
+  var bellSwing = document.getElementById('bell-swing');
+
+  var audioCtx = null;
+  var startTime = null;
+  var rafId = null;
+  var isCounting = false;
+  var baseTitle = 'Silence';
+
+  function showView(view){
+    [idleView, countingView, brokenView].forEach(function(v){
+      v.classList.remove('active');
+    });
+    view.classList.add('active');
+  }
+
+  function formatTime(ms){
+    var totalSeconds = Math.floor(ms / 1000);
+    var h = Math.floor(totalSeconds / 3600);
+    var m = Math.floor((totalSeconds % 3600) / 60);
+    var s = totalSeconds % 60;
+    var sStr = s < 10 ? '0' + s : '' + s;
+    if(h > 0){
+      var mStr = m < 10 ? '0' + m : '' + m;
+      return h + ':' + mStr + ':' + sStr;
+    }
+    return m + ':' + sStr;
+  }
+
+  function tick(){
+    if(!isCounting) return;
+    var elapsed = Date.now() - startTime;
+    var text = formatTime(elapsed);
+    clockEl.textContent = text;
+    document.title = text + ' — Silence';
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function ensureAudio(){
+    if(!audioCtx){
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    if(audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+  }
+
+  // synthesize a soft bell tone from a handful of inharmonic partials
+  function ringBell(){
+    if(!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var master = audioCtx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.linearRampToValueAtTime(0.5, now + 0.01);
+    master.connect(audioCtx.destination);
+
+    var fundamental = 220;
+    var partials = [
+      { ratio: 1.0,  gain: 1.0,  decay: 2.6 },
+      { ratio: 2.0,  gain: 0.55, decay: 2.1 },
+      { ratio: 2.42, gain: 0.35, decay: 1.7 },
+      { ratio: 3.01, gain: 0.22, decay: 1.4 },
+      { ratio: 4.18, gain: 0.14, decay: 1.0 },
+      { ratio: 5.4,  gain: 0.08, decay: 0.7 }
+    ];
+
+    partials.forEach(function(p){
+      var osc = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = fundamental * p.ratio;
+      g.gain.setValueAtTime(p.gain, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + p.decay);
+      osc.connect(g);
+      g.connect(master);
+      osc.start(now);
+      osc.stop(now + p.decay + 0.1);
+    });
+
+    // let the master envelope fall away gently after the longest partial
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 2.7);
+  }
+
+  function beginSession(){
+    ensureAudio();
+    startTime = Date.now();
+    isCounting = true;
+    clockEl.textContent = '0:00';
+    showView(countingView);
+    tick();
+  }
+
+  function breakSilence(){
+    if(!isCounting) return;
+    isCounting = false;
+    if(rafId) cancelAnimationFrame(rafId);
+    var elapsed = Date.now() - startTime;
+    document.title = baseTitle;
+    brokenTimeEl.textContent = formatTime(elapsed);
+    showView(brokenView);
+    ringBell();
+    bellSwing.classList.remove('ring');
+    // restart animation cleanly
+    void bellSwing.offsetWidth;
+    bellSwing.classList.add('ring');
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden && isCounting){
+      breakSilence();
+    }
+  });
+
+  // catches switching to another app/window on desktop even when the
+  // tab itself stays "visible" in some browsers
+  window.addEventListener('blur', function(){
+    if(!isCounting) return;
+    setTimeout(function(){
+      if(isCounting && !document.hasFocus()){
+        breakSilence();
+      }
+    }, 50);
+  });
+
+  beginBtn.addEventListener('click', beginSession);
+  againBtn.addEventListener('click', beginSession);
+
+})();
+</script>
+
+</body>
+</html>
